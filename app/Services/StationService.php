@@ -25,6 +25,12 @@ class StationService
         $osmEnabled  = AppSetting::get('osm_auto_import', true);
         $minExpected = (int) AppSetting::get('osm_min_expected', 8);
         
+        \Illuminate\Support\Facades\Log::info('OSM Settings Check', [
+            'enabled' => $osmEnabled,
+            'min_expected' => $minExpected,
+            'current_count' => $stations->count()
+        ]);
+        
         if ($osmEnabled && $stations->count() < $minExpected && empty($filters)) {
             \Illuminate\Support\Facades\Log::info('Triggering OSM auto-import', ['lat' => $lat, 'lng' => $lng, 'radius' => $radius]);
             $osmStations = $this->osmService->fetchNearbyStations($lat, $lng, $radius);
