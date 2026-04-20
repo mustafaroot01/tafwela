@@ -19,7 +19,7 @@ class StationService
     {
         // 1. Fetch existing stations from DB
         $stations = $this->stationRepository->findNearby($lat, $lng, $radius, $filters);
-        \Illuminate\Support\Facades\Log::info('Checking nearby stations', ['db_count' => $stations->count(), 'radius' => $radius]);
+        // \Illuminate\Support\Facades\Log::info('Checking nearby stations', ['db_count' => $stations->count(), 'radius' => $radius]);
 
         // 2. Dynamic Auto-import logic (controlled from admin settings)
         $osmEnabled  = AppSetting::get('osm_auto_import', true);
@@ -28,17 +28,17 @@ class StationService
         // التحقق مما إذا كانت الفلاتر فارغة فعلياً
         $hasActiveFilters = collect($filters)->filter()->isNotEmpty();
         
-        \Illuminate\Support\Facades\Log::info('OSM Settings Check', [
-            'enabled' => $osmEnabled,
-            'min_expected' => $minExpected,
-            'current_count' => $stations->count(),
-            'has_active_filters' => $hasActiveFilters
-        ]);
+        // \Illuminate\Support\Facades\Log::info('OSM Settings Check', [
+        //     'enabled' => $osmEnabled,
+        //     'min_expected' => $minExpected,
+        //     'current_count' => $stations->count(),
+        //     'has_active_filters' => $hasActiveFilters
+        // ]);
         
         if ($osmEnabled && $stations->count() < $minExpected && !$hasActiveFilters) {
-            \Illuminate\Support\Facades\Log::info('Triggering OSM auto-import', ['lat' => $lat, 'lng' => $lng, 'radius' => $radius]);
+            // \Illuminate\Support\Facades\Log::info('Triggering OSM auto-import', ['lat' => $lat, 'lng' => $lng, 'radius' => $radius]);
             $osmStations = $this->osmService->fetchNearbyStations($lat, $lng, $radius);
-            \Illuminate\Support\Facades\Log::info('OSM stations fetched', ['count' => count($osmStations)]);
+            // \Illuminate\Support\Facades\Log::info('OSM stations fetched', ['count' => count($osmStations)]);
 
             foreach ($osmStations as $osmData) {
                 // Check if station already exists by coordinates (small epsilon)
@@ -47,7 +47,7 @@ class StationService
                     ->exists();
 
                 if (!$exists) {
-                    \Illuminate\Support\Facades\Log::info('Saving new OSM station', ['name' => $osmData['name']]);
+                    // \Illuminate\Support\Facades\Log::info('Saving new OSM station', ['name' => $osmData['name']]);
                     $this->create($osmData);
                 }
             }
