@@ -25,13 +25,17 @@ class StationService
         $osmEnabled  = AppSetting::get('osm_auto_import', true);
         $minExpected = (int) AppSetting::get('osm_min_expected', 8);
         
+        // التحقق مما إذا كانت الفلاتر فارغة فعلياً
+        $hasActiveFilters = collect($filters)->filter()->isNotEmpty();
+        
         \Illuminate\Support\Facades\Log::info('OSM Settings Check', [
             'enabled' => $osmEnabled,
             'min_expected' => $minExpected,
-            'current_count' => $stations->count()
+            'current_count' => $stations->count(),
+            'has_active_filters' => $hasActiveFilters
         ]);
         
-        if ($osmEnabled && $stations->count() < $minExpected && empty($filters)) {
+        if ($osmEnabled && $stations->count() < $minExpected && !$hasActiveFilters) {
             \Illuminate\Support\Facades\Log::info('Triggering OSM auto-import', ['lat' => $lat, 'lng' => $lng, 'radius' => $radius]);
             $osmStations = $this->osmService->fetchNearbyStations($lat, $lng, $radius);
             \Illuminate\Support\Facades\Log::info('OSM stations fetched', ['count' => count($osmStations)]);
