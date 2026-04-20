@@ -1,0 +1,2 @@
+"@extends('admin.layouts.app')\n@section('title', 'Updates Monitor')\n@section('header', 'Updates Monitor')\n\n@section('content')\n<div class=\"flex flex-col sm:flex-row gap-3 mb-6\">\n    <form method=\"GET\" class=\"flex gap-2 flex-wrap\">\n        <sel
+<truncated 6283 bytes>

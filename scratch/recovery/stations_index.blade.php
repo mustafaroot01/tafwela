@@ -1,0 +1,2 @@
+"@extends('admin.layouts.app')\n@section('title', 'Stations')\n@section('header', 'Stations Management')\n\n@section('content')\n<div class=\"flex flex-col sm:flex-row sm:items-center gap-4 mb-6\">\n    <form method=\"GET\" class=\"flex gap-2 flex-1\">\n  
+<truncated 5825 bytes>

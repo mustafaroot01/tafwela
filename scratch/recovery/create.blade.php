@@ -1,0 +1,2 @@
+"@extends('admin.layouts.app')\n@section('title', 'Add Station')\n@section('header', 'Add New Station')\n\n@section('content')\n<div class=\"max-w-2xl bg-white rounded-xl border border-slate-200 p-6 shadow-sm\">\n    <form method=\"POST\" action=\"{{ route
+<truncated 631 bytes>

@@ -1,0 +1,2 @@
+"@extends('admin.layouts.app')\n@section('title', 'Edit Station')\n@section('header', 'Edit Station: ' . $station->name)\n\n@section('content')\n<div class=\"max-w-2xl bg-white rounded-xl border border-slate-200 p-6 shadow-sm\">\n    <form method=\"POST\" 
+<truncated 685 bytes>

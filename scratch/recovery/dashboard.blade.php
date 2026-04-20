@@ -1,0 +1,2 @@
+"@extends('admin.layouts.app')\n@section('title', 'Dashboard')\n@section('header', 'Dashboard')\n\n@section('content')\n{{-- Stat Cards --}}\n<div class=\"grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6\">\n    @php\n        $cards = [\n         
+<truncated 4496 bytes>

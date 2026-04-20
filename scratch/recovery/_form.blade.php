@@ -1,0 +1,2 @@
+"@php $station = $station ?? null; @endphp\n\n@foreach([\n    ['name' => 'name',      'label' => 'Station Name (EN)', 'required' => true],\n    ['name' => 'name_ar',   'label' => 'Station Name (AR)', 'required' => false, 'dir' => 'rtl'],\n    ['name' => 'n
+<truncated 2803 bytes>

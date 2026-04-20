@@ -1,0 +1,2 @@
+"@extends('admin.layouts.app')\n@section('title', 'User Details')\n@section('header', 'User Details')\n\n@section('content')\n<div class=\"max-w-3xl space-y-6\">\n    {{-- Profile Card --}}\n    <div class=\"bg-white rounded-xl border border-slate-200 p-6\
+<truncated 4934 bytes>

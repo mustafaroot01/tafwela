@@ -1,0 +1,2 @@
+"<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\">\n<head>\n    <meta charset=\"UTF-8\"/>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n    <title>@yield('title', 'Dashboard') — Tafwela Admin</title>\n    <script src=\"h
+<truncated 4327 bytes>

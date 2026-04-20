@@ -1,0 +1,2 @@
+"@extends('admin.layouts.app')\n@section('title', 'Users')\n@section('header', 'User Management')\n\n@section('content')\n<div class=\"flex flex-col sm:flex-row gap-4 mb-6\">\n    <form method=\"GET\" class=\"flex gap-2 flex-1\">\n        <input type=\"tex
+<truncated 4499 bytes>
