@@ -17,7 +17,7 @@ class TelegramService
             return false;
         }
 
-        $token  = AppSetting::get('telegram_bot_token');
+        $token = AppSetting::get('telegram_bot_token');
         $chatId = AppSetting::get('telegram_chat_id');
 
         if (empty($token) || empty($chatId)) {
@@ -27,8 +27,8 @@ class TelegramService
 
         try {
             $response = Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
-                'chat_id'    => $chatId,
-                'text'       => $message,
+                'chat_id' => $chatId,
+                'text' => $message,
                 'parse_mode' => 'HTML',
             ]);
 
@@ -53,13 +53,13 @@ class TelegramService
             return;
         }
 
-        $reason = match($report->reason) {
-            'wrong_name'     => 'اسم خاطئ',
-            'not_existing'   => 'المحطة غير موجودة',
+        $reason = match ($report->reason) {
+            'wrong_name' => 'اسم خاطئ',
+            'not_existing' => 'المحطة غير موجودة',
             'wrong_location' => 'موقع خاطئ',
             'out_of_service' => 'خارج الخدمة',
-            'other'          => 'سبب آخر',
-            default          => $report->reason
+            'other' => 'سبب آخر',
+            default => $report->reason
         };
 
         $message = "🚨 <b>تبليغ جديد عن محطة</b>\n\n";
@@ -87,11 +87,11 @@ class TelegramService
         $status = $update->petrol_status === 'available' ? '✅ متوفر' : '❌ غير متوفر';
         $otherStatus = $update->other_fuel_status === 'available' ? '✅ متوفر' : '❌ غير متوفر';
 
-        $congestion = match($update->congestion_level) {
-            'empty'  => '🟢 خالية',
+        $congestion = match ($update->congestion_level) {
+            'empty' => '🟢 خالية',
             'medium' => '🟡 متوسطة',
-            'crowded'=> '🔴 مزدحمة',
-            default  => $update->congestion_level
+            'crowded' => '🔴 مزدحمة',
+            default => $update->congestion_level
         };
 
         $message = "⛽ <b>تحديث جديد لحالة الوقود</b>\n\n";

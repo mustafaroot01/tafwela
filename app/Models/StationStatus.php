@@ -42,6 +42,7 @@ class StationStatus extends Model
     public function getOverallStatusAttribute(): string
     {
         $statuses = [
+            $this->petrol, // Include generic petrol for compatibility
             $this->petrol_normal, 
             $this->petrol_improved, 
             $this->petrol_super, 
