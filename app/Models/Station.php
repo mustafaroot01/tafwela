@@ -53,6 +53,16 @@ class Station extends Model
         return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
     }
 
+    public function reports(): HasMany
+    {
+        return $this->hasMany(StationReport::class);
+    }
+
+    public function stationUpdates(): HasMany
+    {
+        return $this->hasMany(StationUpdate::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

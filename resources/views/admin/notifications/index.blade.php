@@ -1,65 +1,73 @@
-@extends('admin.layouts.app')
+﻿@extends('admin.layouts.app')
 @section('title', 'الإشعارات')
-@section('header', 'إرسال وإدارة الإشعارات')
 
 @section('content')
+
+{{-- Page Header --}}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-[#2F2B3D] text-2xl font-bold">إرسال وإدارة الإشعارات</h1>
+        <p class="text-secondary text-sm">تواصل مع المستخدمين عبر إشعارات Push وتنبيهات مخصصة</p>
+    </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
     {{-- ── Compose Card ── --}}
     <div class="lg:col-span-1">
-        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden sticky top-24">
-            <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-l from-blue-50">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                    </svg>
-                    إرسال إشعار جديد
-                </h3>
+        <div class="materio-card sticky top-24 overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+                <div class="w-10 h-10 rounded bg-primary/10 text-primary flex items-center justify-center">
+                    <i class="ti ti-send text-2xl"></i>
+                </div>
+                <h3 class="text-[#2F2B3D] font-bold text-lg">إرسال إشعار جديد</h3>
             </div>
 
-            <form action="{{ route('admin.notifications.send') }}" method="POST" class="p-5 space-y-4">
+            <form action="{{ route('admin.notifications.send') }}" method="POST" class="p-6 space-y-4">
                 @csrf
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">العنوان</label>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-[#2F2B3D]">العنوان</label>
                     <input type="text" name="title" required maxlength="100"
                            placeholder="مثال: تحديث حالة الوقود"
-                           class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">نص الرسالة</label>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-[#2F2B3D]">نص الرسالة</label>
                     <textarea name="body" required maxlength="500" rows="3"
-                              placeholder="اكتب نص الإشعار هنا..."
-                              class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                               placeholder="اكتب نص الإشعار هنا..."
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm resize-none"></textarea>
                 </div>
 
                 <div x-data="{ hasImage: false }">
-                    <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 mb-1.5 cursor-pointer">
-                        <input type="checkbox" x-model="hasImage" class="rounded">
+                    <label class="flex items-center gap-2 text-xs font-bold text-[#2F2B3D] cursor-pointer mb-2">
+                        <input type="checkbox" x-model="hasImage" class="rounded text-primary focus:ring-primary">
                         إضافة صورة (إشعار غني)
                     </label>
-                    <div x-show="hasImage" x-cloak>
+                    <div x-show="hasImage" x-cloak x-transition>
                         <input type="url" name="image_url"
                                placeholder="https://example.com/image.jpg"
-                               class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" dir="ltr">
-                        <p class="text-xs text-slate-400 mt-1">رابط الصورة (PNG/JPG) — يظهر في الإشعار كبطاقة صورة</p>
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm font-mono" dir="ltr">
+                        <p class="text-[10px] text-secondary mt-1">رابط الصورة (PNG/JPG) — يظهر كبطاقة صورة</p>
                     </div>
                 </div>
 
-                <div x-data="{ target: 'all' }">
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">الجمهور المستهدف</label>
-                    <select name="target" x-model="target"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-3">
-                        <option value="all">جميع المستخدمين</option>
-                        <option value="station">محبّو محطة معينة</option>
-                        <option value="user">مستخدم محدد</option>
-                    </select>
+                <div x-data="{ target: 'all' }" class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-[#2F2B3D]">الجمهور المستهدف</label>
+                        <select name="target" x-model="target"
+                                class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary bg-white text-sm text-secondary">
+                            <option value="all">جميع المستخدمين</option>
+                            <option value="station">محبّو محطة معينة</option>
+                            <option value="user">مستخدم محدد</option>
+                        </select>
+                    </div>
 
-                    <div x-show="target === 'station'" x-cloak>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">اختر المحطة</label>
+                    <div x-show="target === 'station'" x-cloak x-transition class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-[#2F2B3D]">اختر المحطة</label>
                         <select name="station_id"
-                                class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary bg-white text-sm text-secondary">
                             <option value="">-- اختر محطة --</option>
                             @foreach($stations as $station)
                             <option value="{{ $station->id }}">{{ $station->name_ar ?? $station->name }}</option>
@@ -67,19 +75,15 @@
                         </select>
                     </div>
 
-                    <div x-show="target === 'user'" x-cloak>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">رقم هاتف المستخدم</label>
+                    <div x-show="target === 'user'" x-cloak x-transition class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-[#2F2B3D]">رقم هاتف المستخدم</label>
                         <input type="text" name="phone" placeholder="+9647XXXXXXXXX" dir="ltr"
-                               class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm font-mono">
                     </div>
                 </div>
 
-                <button type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                    </svg>
-                    إرسال الإشعار
+                <button type="submit" class="btn-primary w-full flex items-center justify-center gap-2 !py-3 mt-2">
+                    <i class="ti ti-send text-lg"></i> إرسال الإشعار الآن
                 </button>
             </form>
         </div>
@@ -87,83 +91,58 @@
 
     {{-- ── History ── --}}
     <div class="lg:col-span-2">
-        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                <h3 class="font-bold text-slate-800">سجل الإشعارات المرسلة</h3>
-                <span class="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full font-semibold">
-                    {{ $recent->total() }} إشعار
+        <div class="materio-card">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <h3 class="text-[#2F2B3D] font-bold text-lg">سجل الإشعارات المرسلة</h3>
+                <span class="px-2.5 py-1 rounded-full bg-slate-100 text-secondary text-[11px] font-bold">
+                    {{ number_format($recent->total()) }} إشعار
                 </span>
             </div>
 
-            <div class="divide-y divide-slate-50">
+            <div class="divide-y divide-slate-100">
                 @forelse($recent as $notif)
-                <div class="flex items-start gap-4 px-5 py-4 hover:bg-slate-50 transition">
-                    <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center
-                        {{ $notif->type === 'admin_broadcast' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-500' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                        </svg>
+                <div class="flex items-start gap-4 px-6 py-5 hover:bg-slate-50/50 transition group">
+                    <div class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center
+                        {{ $notif->type === 'admin_broadcast' ? 'bg-primary/10 text-primary' : 'bg-warning/10 text-warning' }}">
+                        <i class="ti ti-bell-ringing text-xl"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-2">
-                            <p class="text-sm font-bold text-slate-800">{{ $notif->title }}</p>
-                            <span class="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{{ $notif->created_at->diffForHumans() }}</span>
+                            <p class="text-sm font-bold text-[#2F2B3D]">{{ $notif->title }}</p>
+                            <span class="text-[11px] text-secondary whitespace-nowrap">{{ $notif->created_at->diffForHumans() }}</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $notif->body }}</p>
-                        <div class="flex items-center gap-2 mt-1.5">
-                            <span class="text-xs font-semibold text-slate-400">
-                                إلى: 
-                                @if($notif->user)
-                                    {{ $notif->user->phone }}
-                                @elseif(($notif->data['target'] ?? '') === 'all')
-                                    <span class="text-blue-600">جميع المستخدمين</span>
-                                @else
-                                    —
-                                @endif
-                            </span>
-                            @if($notif->station)
-                            <span class="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-semibold">
-                                {{ $notif->station->name_ar ?? $notif->station->name }}
-                            </span>
-                            @endif
-                            @if($notif->image_url)
-                            <span class="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                صورة
-                            </span>
-                            @endif
+                        <p class="text-xs text-secondary mt-1 line-clamp-2 leading-relaxed">{{ $notif->body }}</p>
+                        
+                        <div class="flex flex-wrap items-center gap-2 mt-3">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">الهدف:</span>
                             @if($notif->user)
-                            <span class="text-xs px-2 py-0.5 rounded-full font-semibold
-                                {{ $notif->is_read ? 'bg-slate-100 text-slate-400' : 'bg-blue-50 text-blue-600' }}">
-                                {{ $notif->is_read ? 'مقروء' : 'غير مقروء' }}
-                            </span>
+                                <span class="px-2 py-0.5 rounded bg-slate-100 text-[#2F2B3D] text-[10px] font-mono">{{ $notif->user->phone }}</span>
+                            @elseif(($notif->data['target'] ?? '') === 'all')
+                                <span class="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold">الجميع</span>
+                            @else
+                                <span class="px-2 py-0.5 rounded bg-slate-100 text-secondary text-[10px] font-bold">مجموعة</span>
                             @endif
                         </div>
                     </div>
-                    <form action="{{ route('admin.notifications.destroy', $notif) }}" method="POST" class="flex-shrink-0">
+                    
+                    <form action="{{ route('admin.notifications.destroy', $notif) }}" method="POST" class="flex-shrink-0"
+                          @submit.prevent="$dispatch('open-confirm', { message: 'هل أنت متأكد من حذف هذا الإشعار من السجل؟ لا يمكن التراجع عن هذا الإجراء.', action: () => $el.submit() })">
                         @csrf @method('DELETE')
-                        <button type="submit" onclick="return confirm('حذف هذا الإشعار؟')"
-                                class="text-slate-300 hover:text-red-400 transition p-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
+                        <button type="submit" class="w-8 h-8 rounded text-slate-300 hover:bg-error/10 hover:text-error transition flex items-center justify-center">
+                            <i class="ti ti-trash text-lg"></i>
                         </button>
                     </form>
                 </div>
                 @empty
-                <div class="px-5 py-16 text-center">
-                    <svg class="w-12 h-12 text-slate-200 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    <p class="text-sm text-slate-400">لا توجد إشعارات مرسلة بعد</p>
+                <div class="px-6 py-16 text-center text-secondary">
+                    <i class="ti ti-bell-off text-4xl block mb-2 opacity-20"></i>
+                    <p class="text-sm">لا توجد إشعارات مرسلة في السجل</p>
                 </div>
                 @endforelse
             </div>
 
             @if($recent->hasPages())
-            <div class="px-5 py-4 border-t border-slate-100">
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
                 {{ $recent->links() }}
             </div>
             @endif

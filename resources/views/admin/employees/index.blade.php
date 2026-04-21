@@ -1,88 +1,75 @@
-@extends('admin.layouts.app')
+﻿@extends('admin.layouts.app')
 @section('title', 'موظفو المحطات')
-@section('header', 'موظفو المحطات')
 
 @section('content')
 
-<div class="flex items-center justify-between mb-6">
-    <p class="text-sm text-slate-500">إدارة حسابات موظفي المحطات — يمكن كل موظف تحديث محطته مباشرة بدون انتظار تأكيدات.</p>
-    <a href="{{ route('admin.employees.create') }}"
-       class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-blue-700 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        إضافة موظف
+{{-- Page Header --}}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-[#2F2B3D] text-2xl font-bold">إدارة الموظفين</h1>
+        <p class="text-secondary text-sm">إدارة حسابات موظفي المحطات</p>
+    </div>
+    <a href="{{ route('admin.employees.create') }}" class="btn-primary flex items-center gap-2 self-start">
+        <i class="ti ti-user-plus text-lg"></i> إضافة موظف جديد
     </a>
 </div>
 
-@if(session('success'))
-<div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl">
-    {{ session('success') }}
-</div>
-@endif
-
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-    <table class="w-full text-sm text-right">
-        <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-                <th class="px-4 py-3 font-semibold text-slate-600">#</th>
-                <th class="px-4 py-3 font-semibold text-slate-600">الاسم</th>
-                <th class="px-4 py-3 font-semibold text-slate-600">رقم الهاتف</th>
-                <th class="px-4 py-3 font-semibold text-slate-600">المحطة المعينة</th>
-                <th class="px-4 py-3 font-semibold text-slate-600">الحالة</th>
-                <th class="px-4 py-3 font-semibold text-slate-600">تاريخ الإنشاء</th>
-                <th class="px-4 py-3"></th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-            @forelse($employees as $emp)
-            <tr class="hover:bg-slate-50 transition">
-                <td class="px-4 py-3 text-slate-400">{{ $emp->id }}</td>
-                <td class="px-4 py-3 font-medium text-slate-800">{{ $emp->name ?? '—' }}</td>
-                <td class="px-4 py-3 text-slate-600 font-mono" dir="ltr">{{ $emp->phone }}</td>
-                <td class="px-4 py-3">
-                    @if($emp->assignedStation)
-                        <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                            <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                            {{ $emp->assignedStation->name_ar ?: $emp->assignedStation->name }}
+{{-- Table --}}
+<div class="materio-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-right border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-6 py-4 text-xs font-bold text-secondary uppercase tracking-wider">الموظف</th>
+                    <th class="px-6 py-4 text-xs font-bold text-secondary uppercase tracking-wider">المحطة</th>
+                    <th class="px-6 py-4 text-xs font-bold text-secondary uppercase tracking-wider text-center">الحالة</th>
+                    <th class="px-6 py-4 text-xs font-bold text-secondary uppercase tracking-wider text-left">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @forelse($employees as $emp)
+                <tr class="hover:bg-slate-50/50 transition group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+                                {{ mb_strtoupper(mb_substr($emp->name ?? '?', 0, 1)) }}
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-[#2F2B3D]">{{ $emp->name ?? '—' }}</span>
+                                <span class="text-[10px] text-secondary font-mono" dir="ltr">{{ $emp->phone }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm font-bold text-[#2F2B3D]">
+                        {{ $emp->assignedStation->name_ar ?? 'غير معين' }}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $emp->is_banned ? 'bg-error/10 text-error' : 'bg-success/10 text-success' }}">
+                            {{ $emp->is_banned ? 'محظور' : 'نشط' }}
                         </span>
-                    @else
-                        <span class="text-slate-400 text-xs">لم تُعيَّن</span>
-                    @endif
-                </td>
-                <td class="px-4 py-3">
-                    @if($emp->is_banned)
-                        <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">محظور</span>
-                    @else
-                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">نشط</span>
-                    @endif
-                </td>
-                <td class="px-4 py-3 text-slate-400 text-xs">{{ $emp->created_at->format('Y/m/d') }}</td>
-                <td class="px-4 py-3">
-                    <div class="flex items-center gap-2 justify-end">
-                        <a href="{{ route('admin.employees.edit', $emp) }}"
-                           class="text-xs text-blue-600 hover:underline font-semibold">تعديل</a>
-                        <form method="POST" action="{{ route('admin.employees.destroy', $emp) }}"
-                              @submit.prevent="$dispatch('open-confirm', { message: 'هل أنت متأكد من إلغاء صلاحية هذا الموظف؟ لن يتمكن من تحديث حالة المحطة بعد الآن.', action: () => $el.submit() })">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="text-xs text-red-500 hover:underline font-semibold">
-                                إلغاء الصلاحية
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="7" class="px-4 py-12 text-center text-slate-400">
-                    لا يوجد موظفون مضافون بعد.
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-    <div class="px-4 py-3 border-t border-slate-100">
-        {{ $employees->links() }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{{ route('admin.employees.edit', $emp) }}" title="تعديل"
+                               class="action-btn w-9 h-9 rounded-lg bg-info/10 text-info hover:bg-info hover:text-white">
+                                <i class="ti ti-edit text-xl"></i>
+                            </a>
+                            <form method="POST" action="{{ route('admin.employees.destroy', $emp) }}"
+                                  @submit.prevent="$dispatch('open-confirm', { message: 'إلغاء صلاحية الموظف؟', action: () => $el.submit() })"
+                                  class="action-form">
+                                @csrf @method('DELETE')
+                                <button type="submit" title="حذف" class="action-btn w-9 h-9 rounded-lg bg-error/10 text-error hover:bg-error hover:text-white">
+                                    <i class="ti ti-trash text-xl"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="4" class="px-6 py-16 text-center text-secondary">لا يوجد موظفون</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 

@@ -18,7 +18,8 @@ class StoreStationRequest extends FormRequest
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'address'   => ['nullable', 'string', 'max:500'],
             'city'      => ['nullable', 'string', 'max:100'],
-            'is_active' => ['boolean'],
+            'district'  => ['nullable', 'string', 'max:100'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

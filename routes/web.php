@@ -25,8 +25,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Stations
-        Route::resource('stations', StationController::class)
-            ->except(['show']);
+        Route::resource('stations', StationController::class);
 
         // Admin station updates
         Route::post('stations/{station}/update-status', [UpdateController::class, 'adminUpdate'])

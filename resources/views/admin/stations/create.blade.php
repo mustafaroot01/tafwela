@@ -1,32 +1,34 @@
-@extends('admin.layouts.app')
+﻿@extends('admin.layouts.app')
 @section('title', 'إضافة محطة جديدة')
-@section('header', 'إضافة محطة جديدة')
 
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-        <a href="{{ route('admin.stations.index') }}" class="text-sm font-black text-slate-400 hover:text-brand-600 transition-colors flex items-center gap-2">
-            <span>→</span>
-            العودة لقائمة المحطات
+    
+    {{-- Page Header --}}
+    <div class="mb-6 flex items-center gap-4">
+        <a href="{{ route('admin.stations.index') }}" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-secondary hover:text-primary transition shadow-sm">
+            <i class="ti ti-arrow-right text-xl"></i>
         </a>
+        <div>
+            <h1 class="text-[#2F2B3D] text-2xl font-bold">إضافة محطة وقود جديدة</h1>
+            <p class="text-secondary text-sm">إضافة بيانات الموقع والمعلومات الأساسية للمحطة</p>
+        </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.stations.store') }}" class="space-y-8">
+    <form method="POST" action="{{ route('admin.stations.store') }}" class="space-y-6">
         @csrf
         
-        <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
+        <div class="materio-card p-10">
             @include('admin.stations._form')
         </div>
 
-        <div class="flex items-center justify-end gap-4">
-            <a href="{{ route('admin.stations.index') }}" 
-               class="px-8 py-4 bg-slate-100 text-slate-600 text-sm font-black rounded-2xl hover:bg-slate-200 transition-all">
+        <div class="flex items-center justify-end gap-3">
+            <button type="submit" class="btn-primary px-10 flex items-center gap-2">
+                <i class="ti ti-device-floppy text-lg"></i> حفظ بيانات المحطة
+            </button>
+            <a href="{{ route('admin.stations.index') }}" class="px-6 py-2.5 bg-white border border-slate-200 text-secondary rounded-lg font-bold hover:bg-slate-50 transition">
                 إلغاء
             </a>
-            <button type="submit" 
-                    class="px-12 py-4 bg-brand-600 text-white text-sm font-black rounded-2xl hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-500/30 transition-all">
-                حفظ المحطة الجديدة
-            </button>
         </div>
     </form>
 </div>

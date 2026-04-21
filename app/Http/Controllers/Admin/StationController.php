@@ -24,6 +24,16 @@ class StationController extends Controller
         return view('admin.stations.index', compact('stations'));
     }
 
+    public function show(Station $station): View
+    {
+        // Load status and reports (with users) to create the "Profile" view
+        $station->load(['status', 'reports.user', 'stationUpdates' => function($q) {
+            $q->latest()->take(10);
+        }]);
+        
+        return view('admin.stations.show', compact('station'));
+    }
+
     public function create(): View
     {
         return view('admin.stations.create');
@@ -47,8 +57,8 @@ class StationController extends Controller
     {
         $this->stationService->update($station, $request->validated());
 
-        return redirect()->route('admin.stations.index')
-            ->with('success', 'Station updated successfully.');
+        return redirect()->back()
+            ->with('success', "تم تحديث بيانات المحطة «{$station->name_ar}» بنجاح.");
     }
 
     public function destroy(Station $station): RedirectResponse

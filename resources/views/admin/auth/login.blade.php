@@ -3,65 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول | تفويلة</title>
+    <title>تسجيل الدخول | لوحة تحكم تفويلة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>* { font-family: 'Cairo', sans-serif; }</style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <style>
+        * { font-family: 'Cairo', sans-serif; }
+        .shadow-materio { box-shadow: 0 0.25rem 1.125rem 0 rgba(75, 70, 92, 0.1); }
+        .bg-materio { background-color: #F8F7FA; }
+        .btn-primary { 
+            background-color: #7367F0; 
+            box-shadow: 0 0.125rem 0.25rem 0 rgba(115, 103, 240, 0.4); 
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-primary:hover { 
+            background-color: #695ee0; 
+            box-shadow: 0 0.25rem 0.5rem 0 rgba(115, 103, 240, 0.4);
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
-<body class="antialiased min-h-screen bg-slate-100 flex items-center justify-center p-4">
+<body class="antialiased min-h-screen bg-materio flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md">
+    <div class="w-full max-w-[400px]">
 
         {{-- Logo --}}
         <div class="text-center mb-8">
-            <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
+            <div class="w-16 h-16 bg-white rounded-xl shadow-materio flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                <i class="ti ti-gas-station text-4xl text-[#7367F0]"></i>
             </div>
-            <h1 class="text-2xl font-bold text-slate-800">تفويلة</h1>
-            <p class="text-sm text-slate-500 mt-1">لوحة تحكم المسؤول</p>
+            <h1 class="text-3xl font-black text-[#2F2B3D] tracking-tight">تفويلة</h1>
+            <p class="text-sm text-secondary font-bold opacity-60 mt-1">لوحة التحكم الإدارية</p>
         </div>
 
-        {{-- Card --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-            <h2 class="text-lg font-bold text-slate-700 mb-6">تسجيل الدخول</h2>
+        {{-- Login Card --}}
+        <div class="bg-white rounded-xl shadow-materio border border-slate-100 p-8">
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-[#2F2B3D]">مرحباً بك مجدداً! 👋</h2>
+                <p class="text-xs text-secondary font-medium mt-1">الرجاء تسجيل الدخول للوصول إلى لوحة التحكم</p>
+            </div>
 
             <form action="{{ route('admin.login.post') }}" method="POST" class="space-y-5">
                 @csrf
 
-                <div>
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">رقم الهاتف</label>
-                    <input type="text" name="phone" value="{{ old('phone') }}" required autofocus dir="ltr"
-                           class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                           placeholder="+9647XXXXXXXXX">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-[#2F2B3D] uppercase">البريد الإلكتروني</label>
+                    <div class="relative">
+                        <i class="ti ti-mail absolute inset-y-0 right-3 my-auto flex items-center text-secondary opacity-40 text-lg"></i>
+                        <input type="email" name="email" value="{{ old('email') }}" required autofocus dir="ltr"
+                               class="w-full pr-10 pl-4 py-2.5 border border-slate-200 rounded-lg text-sm text-[#2F2B3D] focus:outline-none focus:border-[#7367F0] transition"
+                               placeholder="admin@tafwela.com">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">كلمة المرور</label>
-                    <input type="password" name="password" required dir="ltr"
-                           class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                           placeholder="••••••••">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-[#2F2B3D] uppercase">كلمة المرور</label>
+                    <div class="relative">
+                        <i class="ti ti-lock absolute inset-y-0 right-3 my-auto flex items-center text-secondary opacity-40 text-lg"></i>
+                        <input type="password" name="password" required dir="ltr"
+                               class="w-full pr-10 pl-4 py-2.5 border border-slate-200 rounded-lg text-sm text-[#2F2B3D] focus:outline-none focus:border-[#7367F0] transition"
+                               placeholder="••••••••">
+                    </div>
                 </div>
 
                 @if($errors->any())
-                    <div class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
-                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="flex items-center gap-2 p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg text-[11px] font-bold">
+                        <i class="ti ti-alert-circle text-lg"></i>
                         {{ $errors->first() }}
                     </div>
                 @endif
 
-                <button type="submit"
-                        class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition">
-                    دخول
+                <button type="submit" class="w-full py-3 btn-primary text-white font-bold rounded-lg text-sm transition">
+                    تسجيل الدخول
                 </button>
             </form>
         </div>
 
-        <p class="text-center mt-6 text-xs text-slate-400">
-            &copy; {{ date('Y') }} منصة تفويلة
-        </p>
+        <div class="text-center mt-8">
+            <p class="text-xs text-secondary font-bold opacity-40">
+                &copy; {{ date('Y') }} جميع الحقوق محفوظة لمنصة تفويلة
+            </p>
+        </div>
     </div>
 
 </body>

@@ -23,7 +23,7 @@ class EmployeeController extends Controller
 
     public function create(Request $request): View
     {
-        $stations = Station::active()->orderBy('name_ar')->get(['id', 'name', 'name_ar']);
+        $stations = Station::orderBy('name_ar')->orderBy('name')->get(['id', 'name', 'name_ar', 'city']);
         $prefilledPhone = $request->query('phone');
         $prefilledStation = $request->query('station_id');
         return view('admin.employees.form', compact('stations', 'prefilledPhone', 'prefilledStation'));
@@ -56,7 +56,7 @@ class EmployeeController extends Controller
 
     public function edit(User $employee): View
     {
-        $stations = Station::active()->orderBy('name_ar')->get(['id', 'name', 'name_ar']);
+        $stations = Station::orderBy('name_ar')->orderBy('name')->get(['id', 'name', 'name_ar', 'city']);
         return view('admin.employees.form', compact('employee', 'stations'));
     }
 
