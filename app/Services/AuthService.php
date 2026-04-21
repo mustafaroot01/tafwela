@@ -62,4 +62,19 @@ class AuthService
     {
         $user->currentAccessToken()->delete();
     }
+
+    public function deleteAccount(User $user): void
+    {
+        // 1. Delete all tokens
+        $user->tokens()->delete();
+
+        // 2. Clear relationships
+        $user->favorites()->detach();
+        
+        // 3. Delete notifications
+        $user->pushNotifications()->delete();
+
+        // 4. Delete the user
+        $user->delete();
+    }
 }

@@ -28,15 +28,20 @@ class StationService
         // التحقق مما إذا كانت الفلاتر فارغة فعلياً
         $hasActiveFilters = collect($filters)->filter()->isNotEmpty();
         
+        // Check if there's any station VERY close (within 300m)
+        $veryCloseCount = $stations->filter(fn($s) => ($s->distance ?? 99) <= 0.3)->count();
+        
         // \Illuminate\Support\Facades\Log::info('OSM Settings Check', [
         //     'enabled' => $osmEnabled,
         //     'min_expected' => $minExpected,
         //     'current_count' => $stations->count(),
+        //     'very_close_count' => $veryCloseCount,
         //     'has_active_filters' => $hasActiveFilters
         // ]);
         
-        if ($osmEnabled && $stations->count() < $minExpected && !$hasActiveFilters) {
+        if ($osmEnabled && ($stations->count() < $minExpected || $veryCloseCount == 0) && !$hasActiveFilters) {
             // \Illuminate\Support\Facades\Log::info('Triggering OSM auto-import', ['lat' => $lat, 'lng' => $lng, 'radius' => $radius]);
+            // Search in a smaller radius first for better performance and relevance
             $osmStations = $this->osmService->fetchNearbyStations($lat, $lng, $radius);
             // \Illuminate\Support\Facades\Log::info('OSM stations fetched', ['count' => count($osmStations)]);
 

@@ -18,4 +18,24 @@ class AppConfigController extends Controller
             'default_radius'       => (int) AppSetting::get('default_search_radius', 10),
         ]);
     }
+
+    public function pages(): JsonResponse
+    {
+        return response()->json([
+            'privacy_policy' => [
+                'title'   => 'سياسة الخصوصية',
+                'content' => AppSetting::get('privacy_policy_content', 'سياسة الخصوصية الافتراضية للتطبيق...'),
+            ],
+            'contact' => [
+                'title'    => 'تواصل معنا',
+                'content'  => AppSetting::get('contact_content', 'يمكنك التواصل معنا عبر الوسائل التالية:'),
+                'phone'    => AppSetting::get('contact_phone', ''),
+                'whatsapp' => AppSetting::get('contact_whatsapp', ''),
+            ],
+            'socials' => [
+                'instagram' => AppSetting::get('instagram_url', ''),
+                'facebook'  => AppSetting::get('facebook_url', ''),
+            ]
+        ]);
+    }
 }

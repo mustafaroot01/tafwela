@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 // ── App Config (exempt from maintenance - always available) ────
 Route::get('v1/config', [AppConfigController::class, 'index']);
+Route::get('v1/pages',  [AppConfigController::class, 'pages']);
 
 // ── Public Routes ──────────────────────────────────────────────
 Route::prefix('v1')->middleware('maintenance')->group(function () {
@@ -40,6 +41,7 @@ Route::prefix('v1')->middleware('maintenance')->group(function () {
         // Profile
         Route::get('auth/me',                  [AuthController::class, 'me']);
         Route::put('auth/profile',             [AuthController::class, 'updateProfile']);
+        Route::delete('auth/delete',           [AuthController::class, 'deleteAccount']);
         Route::post('auth/logout',             [AuthController::class, 'logout']);
 
         // Favorites

@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title', 'الإعدادات')
 
 @section('content')
@@ -18,7 +18,7 @@
         <button @click="activeTab = '{{ $key }}'"
                 :class="activeTab === '{{ $key }}' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-secondary hover:bg-slate-50'"
                 class="px-6 py-2.5 rounded-lg text-sm font-bold transition flex items-center gap-2 border border-slate-100">
-            <i class="ti {{ $key === 'otp' ? 'ti-lock-check' : ($key === 'stations' ? 'ti-gas-station' : ($key === 'notifications' ? 'ti-bell' : ($key === 'telegram' ? 'ti-brand-telegram' : 'ti-settings'))) }} text-lg"></i>
+            <i class="ti {{ $key === 'otp' ? 'ti-lock-check' : ($key === 'stations' ? 'ti-gas-station' : ($key === 'notifications' ? 'ti-bell' : ($key === 'telegram' ? 'ti-brand-telegram' : ($key === 'pages' ? 'ti-file-description' : 'ti-settings')))) }} text-lg"></i>
             {{ $group['label'] }}
         </button>
         @endforeach
@@ -35,7 +35,7 @@
                 <div class="px-6 py-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                          <div class="w-10 h-10 rounded bg-primary/10 text-primary flex items-center justify-center">
-                             <i class="ti {{ $groupKey === 'otp' ? 'ti-shield-lock' : ($groupKey === 'stations' ? 'ti-gas-station' : ($groupKey === 'notifications' ? 'ti-bell' : ($groupKey === 'telegram' ? 'ti-brand-telegram' : 'ti-app-window'))) }} text-2xl"></i>
+                             <i class="ti {{ $groupKey === 'otp' ? 'ti-shield-lock' : ($groupKey === 'stations' ? 'ti-gas-station' : ($groupKey === 'notifications' ? 'ti-bell' : ($groupKey === 'telegram' ? 'ti-brand-telegram' : ($groupKey === 'pages' ? 'ti-file-description' : 'ti-app-window')))) }} text-2xl"></i>
                          </div>
                          <h3 class="text-[#2F2B3D] font-bold text-lg">{{ $group['label'] }}</h3>
                     </div>
@@ -63,16 +63,16 @@
 
                 <div class="p-6 divide-y divide-slate-100">
                     @foreach($group['settings'] as $setting)
-                    <div class="py-5 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-center gap-6">
+                    <div class="py-4 first:pt-0 last:pb-0 flex flex-col gap-2">
                         <div class="flex-1">
                             <label class="block text-sm font-bold text-[#2F2B3D] mb-1">
                                 {{ $setting->label ?? $setting->key }}
                             </label>
                             @if($setting->description)
-                            <p class="text-xs text-secondary leading-relaxed">{{ $setting->description }}</p>
+                            <p class="text-xs text-secondary leading-relaxed mb-2">{{ $setting->description }}</p>
                             @endif
                         </div>
-                        <div class="w-full md:w-1/2 flex justify-end">
+                        <div class="w-full">
                             @if($setting->type === 'boolean')
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="{{ $setting->key }}" value="1"
@@ -85,21 +85,27 @@
                                 </label>
                             @elseif($setting->key === 'otpiq_channel')
                                 <select name="{{ $setting->key }}"
-                                        class="w-full md:w-80 px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary bg-white text-sm">
+                                        class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary bg-white text-sm">
                                     @foreach(['whatsapp-sms' => 'واتساب ثم SMS', 'whatsapp-telegram-sms' => 'واتساب ثم تيليغرام ثم SMS', 'whatsapp' => 'واتساب فقط', 'telegram' => 'تيليغرام فقط', 'sms' => 'SMS فقط'] as $val => $lbl)
                                     <option value="{{ $val }}" {{ $setting->value === $val ? 'selected' : '' }}>{{ $lbl }}</option>
                                     @endforeach
                                 </select>
                             @elseif($setting->type === 'integer')
                                 <input type="number" name="{{ $setting->key }}" value="{{ $setting->value }}"
-                                       class="w-full md:w-80 px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm">
+                                       class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm">
+                            @elseif($setting->type === 'textarea')
+                                <textarea name="{{ $setting->key }}" rows="4"
+                                          class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm">{{ $setting->value }}</textarea>
+                            @elseif($setting->type === 'text')
+                                <input type="text" name="{{ $setting->key }}" value="{{ $setting->value }}"
+                                       class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm">
                             @elseif(str_contains($setting->key, 'key') || str_contains($setting->key, 'secret') || str_contains($setting->key, 'token'))
                                 <input type="password" name="{{ $setting->key }}" value="{{ $setting->value }}"
                                        autocomplete="new-password"
-                                       class="w-full md:w-80 px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm font-mono" dir="ltr">
+                                       class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm font-mono" dir="ltr">
                             @else
                                 <input type="text" name="{{ $setting->key }}" value="{{ $setting->value }}"
-                                       class="w-full md:w-80 px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm">
+                                       class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary text-sm">
                             @endif
                         </div>
                     </div>

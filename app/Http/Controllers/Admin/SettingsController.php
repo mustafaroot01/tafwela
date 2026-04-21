@@ -19,6 +19,7 @@ class SettingsController extends Controller
             'notifications' => ['label' => 'إعدادات الإشعارات', 'settings' => AppSetting::getGroup('notifications')],
             'telegram' => ['label' => 'إعدادات بوت تليجرام', 'settings' => AppSetting::getGroup('telegram')],
             'app' => ['label' => 'إعدادات التطبيق', 'settings' => AppSetting::getGroup('app')],
+            'pages' => ['label' => 'صفحات التطبيق', 'settings' => AppSetting::getGroup('pages')],
         ];
 
         return view('admin.settings.index', compact('groups'));
