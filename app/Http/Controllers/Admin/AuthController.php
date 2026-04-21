@@ -18,16 +18,16 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $request->validate([
-            'email'    => ['required', 'string', 'email'],
+            'phone'    => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = \App\Models\User::where('phone', $request->email)
+        $user = \App\Models\User::where('phone', $request->phone)
             ->where('is_admin', true)
             ->first();
 
         if (!$user || !\Illuminate\Support\Facades\Hash::check($request->password, $user->password ?? '')) {
-            return back()->withErrors(['email' => 'البيانات المدخلة غير صحيحة.'])->withInput();
+            return back()->withErrors(['phone' => 'البيانات المدخلة غير صحيحة.'])->withInput();
         }
 
         Auth::login($user, $request->boolean('remember'));
