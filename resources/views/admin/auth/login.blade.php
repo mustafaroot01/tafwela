@@ -47,12 +47,12 @@
                 @csrf
 
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-bold text-[#2F2B3D] uppercase">رقم الهاتف</label>
+                    <label class="text-xs font-bold text-[#2F2B3D] uppercase">البريد الإلكتروني</label>
                     <div class="relative">
-                        <i class="ti ti-phone absolute inset-y-0 right-3 my-auto flex items-center text-secondary opacity-40 text-lg"></i>
-                        <input type="tel" name="phone" value="{{ old('phone') }}" required autofocus dir="ltr"
+                        <i class="ti ti-mail absolute inset-y-0 right-3 my-auto flex items-center text-secondary opacity-40 text-lg"></i>
+                        <input type="email" name="email" value="{{ old('email') }}" required autofocus dir="ltr"
                                class="w-full pr-10 pl-4 py-2.5 border border-slate-200 rounded-lg text-sm text-[#2F2B3D] focus:outline-none focus:border-[#7367F0] transition"
-                               placeholder="+9647000000001">
+                               placeholder="admin@tafwela.com">
                     </div>
                 </div>
 
