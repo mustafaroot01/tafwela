@@ -324,16 +324,47 @@ class UpdateService
         }
 
         // 4. Record interaction
+        $station = $update->station;
+        $currentStatus = $station->status;
+
+        // Logic: The user clicks "Correct/Wrong" based on what they see in the UI (StationStatus).
+        // If the pending update is trying to CHANGE the status, and the user clicks "Correct" (agreeing with status quo),
+        // then the user is actually DISPUTING the pending update.
+        
+        $updateMatchesStatus = true;
+        $fields = ['petrol_normal', 'petrol_improved', 'petrol_super', 'diesel', 'kerosene', 'gas'];
+        
+        foreach ($fields as $field) {
+            // If the update modified this field and it's different from current status
+            if ($update->{$field} !== null && $currentStatus && $update->{$field} !== $currentStatus->{$field}) {
+                $updateMatchesStatus = false;
+                break;
+            }
+        }
+
+        $realType = $type;
+        if ($type === 'confirm') {
+            // User says UI is "Correct". 
+            // If update matches UI -> confirm the update.
+            // If update differs from UI -> dispute the update (user says the change is wrong).
+            $realType = $updateMatchesStatus ? 'confirm' : 'dispute';
+        } else {
+            // User says UI is "Wrong".
+            // If update matches UI -> dispute the update (user says status quo is wrong).
+            // If update differs from UI -> confirm the update (user agrees that a change is needed).
+            $realType = $updateMatchesStatus ? 'dispute' : 'confirm';
+        }
+
         UpdateInteraction::create([
             'user_id' => $user->id,
             'station_update_id' => $update->id,
-            'type' => $type,
+            'type' => $realType,
         ]);
 
         // 3. Process interaction
-        if ($type === 'confirm') {
+        if ($realType === 'confirm') {
             $update = $this->updateRepository->incrementConfirmation($update);
-        } elseif ($type === 'dispute') {
+        } elseif ($realType === 'dispute') {
             $update = $this->updateRepository->incrementDispute($update);
         }
 

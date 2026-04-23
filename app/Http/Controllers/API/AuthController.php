@@ -12,7 +12,9 @@ use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthService $authService) {}
+    public function __construct(private readonly AuthService $authService)
+    {
+    }
 
     public function sendOtp(SendOtpRequest $request): JsonResponse
     {
@@ -38,15 +40,15 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'token'  => $result['token'],
-            'user'   => new UserResource($result['user']),
+            'token' => $result['token'],
+            'user' => new UserResource($result['user']),
             'is_new' => $result['is_new'],
         ]);
     }
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json(new UserResource($request->user()->load('assignedStation')));
+        return response()->json(new UserResource($request->user()));
     }
 
     public function updateProfile(Request $request): JsonResponse
@@ -62,11 +64,11 @@ class AuthController extends Controller
     {
         $request->validate([
             'fcm_token' => ['required', 'string'],
-            'platform'  => ['nullable', 'string', 'max:20'],
+            'platform' => ['nullable', 'string', 'max:20'],
         ]);
 
         $user = auth('sanctum')->user();
-        
+
         // Update user record if exists
         if ($user) {
             $user->update(['fcm_token' => $request->fcm_token]);
@@ -76,8 +78,8 @@ class AuthController extends Controller
         \App\Models\DeviceToken::updateOrCreate(
             ['token' => $request->fcm_token],
             [
-                'user_id'      => $user?->id,
-                'platform'     => $request->platform,
+                'user_id' => $user?->id,
+                'platform' => $request->platform,
                 'last_seen_at' => now(),
             ]
         );
