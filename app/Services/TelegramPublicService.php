@@ -134,12 +134,18 @@ class TelegramPublicService
             'petrol_normal'   => '⛽ بنزين عادي',
             'petrol_improved' => '✨ بنزين محسن',
             'petrol_super'    => '💎 بنزين سوبر',
-            'diesel'          => '🚛 كاز',
+            'diesel'          => '🚛 كاز (ديزل)',
+            'gas'             => '🔥 غاز سائل',
+            'kerosene'        => '🛢️ نفط أبيض',
         ];
 
         $buttons = [];
-        foreach ($fuels as $key => $label) {
-            $buttons[] = [['text' => $label, 'callback_data' => "fuel_{$province}_{$key}"]];
+        foreach (array_chunk($fuels, 2, true) as $chunk) {
+            $row = [];
+            foreach ($chunk as $key => $label) {
+                $row[] = ['text' => $label, 'callback_data' => "fuel_{$province}_{$key}"];
+            }
+            $buttons[] = $row;
         }
         $buttons[] = [['text' => '⬅️ رجوع للمحافظات', 'callback_data' => 'show_provinces']];
 
