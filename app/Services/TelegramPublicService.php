@@ -67,11 +67,11 @@ class TelegramPublicService
     protected function sendWelcome(int $chatId, ?string $text = null, ?int $editMessageId = null): void
     {
         $welcomeText = $text ?? "💡 <b>مرحباً بك في بوت تفويلة!</b>\n\nهذا البوت مخصص لعرض المحطات الموثوقة (الموثقة إدارياً أو من قبل المستخدمين الموثوقين) والبحث عن توفر الوقود حالياً.";
-        
+
         $keyboard = [
             'inline_keyboard' => [
                 [['text' => '🔍 البحث حسب المحافظة', 'callback_data' => 'show_provinces']],
-                [['text' => '📱 تحميل التطبيق', 'url' => 'https://tafwela.com']],
+                [['text' => '📱 تحميل التطبيق من Google Play', 'url' => AppSetting::get('android_app_url', 'https://play.google.com/store/apps/details?id=com.tafwela.tafwela_app')]],
             ]
         ];
 
@@ -96,11 +96,24 @@ class TelegramPublicService
     protected function showProvinces(int $chatId, ?int $messageId = null): void
     {
         $provinces = [
-            'بغداد', 'البصرة', 'نينوى', 'أربيل', 
-            'النجف', 'كربلاء', 'السليمانية', 'كركوك', 
-            'الأنبار', 'ذي قار', 'ميسان', 'القادسية', 
-            'المثنى', 'بابل', 'واسط', 'ديالى', 
-            'صلاح الدين', 'دهوك'
+            'بغداد',
+            'البصرة',
+            'نينوى',
+            'أربيل',
+            'النجف',
+            'كربلاء',
+            'السليمانية',
+            'كركوك',
+            'الأنبار',
+            'ذي قار',
+            'ميسان',
+            'القادسية',
+            'المثنى',
+            'بابل',
+            'واسط',
+            'ديالى',
+            'صلاح الدين',
+            'دهوك'
         ];
 
         $buttons = [];
@@ -131,12 +144,12 @@ class TelegramPublicService
     protected function showFuelTypes(int $chatId, int $messageId, string $province): void
     {
         $fuels = [
-            'petrol_normal'   => '⛽ بنزين عادي',
+            'petrol_normal' => '⛽ بنزين عادي',
             'petrol_improved' => '✨ بنزين محسن',
-            'petrol_super'    => '💎 بنزين سوبر',
-            'diesel'          => '🚛 كاز (ديزل)',
-            'gas'             => '🔥 غاز سائل',
-            'kerosene'        => '🛢️ نفط أبيض',
+            'petrol_super' => '💎 بنزين سوبر',
+            'diesel' => '🚛 كاز (ديزل)',
+            'gas' => '🔥 غاز سائل',
+            'kerosene' => '🛢️ نفط أبيض',
         ];
 
         $buttons = [];
@@ -163,14 +176,14 @@ class TelegramPublicService
         // Filter stations in province that have this fuel available and are verified
         // "Verified" means admin source OR trusted user source
         // Filter stations in province that have this fuel available and are verified
-        $stations = Station::where(function($q) use ($province) {
-                $q->where('city', 'like', "%$province%")
-                  ->orWhere('district', 'like', "%$province%")
-                  ->orWhere('address', 'like', "%$province%");
-            })
-            ->whereHas('status', function($q) use ($fuelType) {
+        $stations = Station::where(function ($q) use ($province) {
+            $q->where('city', 'like', "%$province%")
+                ->orWhere('district', 'like', "%$province%")
+                ->orWhere('address', 'like', "%$province%");
+        })
+            ->whereHas('status', function ($q) use ($fuelType) {
                 $q->where($fuelType, 'available')
-                  ->whereIn('source', ['admin', 'verified_users']);
+                    ->whereIn('source', ['admin', 'verified_users']);
             })
             ->with('status')
             ->orderByDesc('updated_at')
@@ -191,10 +204,10 @@ class TelegramPublicService
         $text = "✅ <b>المحطات الموثقة المتوفر فيها الوقود حالياً:</b>\n\n";
         foreach ($stations as $s) {
             $congestion = match ($s->status->congestion) {
-                'low'    => '🟢 خالية',
+                'low' => '🟢 خالية',
                 'medium' => '🟡 متوسطة',
-                'high'   => '🔴 مزدحمة',
-                default  => '⚪ غير محدد'
+                'high' => '🔴 مزدحمة',
+                default => '⚪ غير محدد'
             };
             $text .= "📍 <b>{$s->name_ar}</b>\n";
             $text .= "🚦 الازدحام: {$congestion}\n";
@@ -214,7 +227,8 @@ class TelegramPublicService
 
     protected function api(string $method, array $data): bool
     {
-        if (empty($this->token)) return false;
+        if (empty($this->token))
+            return false;
 
         try {
             $response = Http::post("https://api.telegram.org/bot{$this->token}/{$method}", $data);
