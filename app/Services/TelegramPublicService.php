@@ -95,10 +95,13 @@ class TelegramPublicService
 
     protected function showProvinces(int $chatId, ?int $messageId = null): void
     {
-        $provinces = Station::distinct()->pluck('city')->filter()->toArray();
-        if (empty($provinces)) {
-            $provinces = ['بغداد', 'البصرة', 'نينوى', 'أربيل', 'النجف', 'كربلاء']; // Default fallbacks
-        }
+        $provinces = [
+            'بغداد', 'البصرة', 'نينوى', 'أربيل', 
+            'النجف', 'كربلاء', 'السليمانية', 'كركوك', 
+            'الأنبار', 'ذي قار', 'ميسان', 'القادسية', 
+            'المثنى', 'بابل', 'واسط', 'ديالى', 
+            'صلاح الدين', 'دهوك'
+        ];
 
         $buttons = [];
         foreach (array_chunk($provinces, 2) as $chunk) {
@@ -153,12 +156,18 @@ class TelegramPublicService
     {
         // Filter stations in province that have this fuel available and are verified
         // "Verified" means admin source OR trusted user source
-        $stations = Station::where('city', $province)
+        // Filter stations in province that have this fuel available and are verified
+        $stations = Station::where(function($q) use ($province) {
+                $q->where('city', 'like', "%$province%")
+                  ->orWhere('district', 'like', "%$province%")
+                  ->orWhere('address', 'like', "%$province%");
+            })
             ->whereHas('status', function($q) use ($fuelType) {
                 $q->where($fuelType, 'available')
                   ->whereIn('source', ['admin', 'verified_users']);
             })
             ->with('status')
+            ->orderByDesc('updated_at')
             ->limit(5)
             ->get();
 
