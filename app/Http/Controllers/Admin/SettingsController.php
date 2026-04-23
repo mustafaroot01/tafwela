@@ -17,7 +17,8 @@ class SettingsController extends Controller
             'otp' => ['label' => 'إعدادات OTP والتحقق', 'settings' => AppSetting::getGroup('otp')],
             'stations' => ['label' => 'إعدادات المحطات', 'settings' => AppSetting::getGroup('stations')],
             'notifications' => ['label' => 'إعدادات الإشعارات', 'settings' => AppSetting::getGroup('notifications')],
-            'telegram' => ['label' => 'إعدادات بوت تليجرام', 'settings' => AppSetting::getGroup('telegram')],
+            'telegram' => ['label' => 'إعدادات بوت تليجرام (إشعارات)', 'settings' => AppSetting::getGroup('telegram')],
+            'telegram_public' => ['label' => 'بوت المجموعات التفاعلي', 'settings' => AppSetting::getGroup('telegram_public')],
             'app' => ['label' => 'إعدادات التطبيق', 'settings' => AppSetting::getGroup('app')],
             'pages' => ['label' => 'صفحات التطبيق', 'settings' => AppSetting::getGroup('pages')],
         ];
@@ -65,6 +66,31 @@ class SettingsController extends Controller
             'message' => $success ? 'تم إرسال رسالة تجريبية بنجاح' : 'فشل الإرسال، تأكد من التوكن و Chat ID'
         ]);
     }
+
+    public function setTelegramWebhook(): \Illuminate\Http\JsonResponse
+    {
+        $token = AppSetting::get('public_bot_token');
+        if (empty($token)) {
+            return response()->json(['success' => false, 'message' => 'التوكن غير موجود']);
+        }
+
+        $url = url('/api/telegram/webhook');
+        
+        try {
+            $response = \Illuminate\Support\Facades\Http::post("https://api.telegram.org/bot{$token}/setWebhook", [
+                'url' => $url
+            ]);
+
+            if ($response->successful()) {
+                return response()->json(['success' => true, 'message' => 'تم ضبط Webhook بنجاح على: ' . $url]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'خطأ من تليجرام: ' . $response->json('description')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+        }
+    }
+
 
     public function testFcm(): \Illuminate\Http\JsonResponse
     {

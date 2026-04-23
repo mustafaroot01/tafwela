@@ -11,7 +11,7 @@ class TelegramService
     /**
      * Send a message to the configured Telegram chat.
      */
-    public function sendMessage(string $message): bool
+    public function sendMessage(string $message, ?array $replyMarkup = null): bool
     {
         if (!AppSetting::get('telegram_enabled', false)) {
             return false;
@@ -26,20 +26,29 @@ class TelegramService
         }
 
         try {
-            $response = Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
+            $data = [
                 'chat_id' => $chatId,
                 'text' => $message,
                 'parse_mode' => 'HTML',
-            ]);
+            ];
+
+            if ($replyMarkup) {
+                $data['reply_markup'] = json_encode($replyMarkup);
+            }
+
+            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$token}/sendMessage", $data);
 
             if (!$response->successful()) {
-                Log::error('Telegram API error: ' . $response->body());
+                Log::error('Telegram API error (' . $response->status() . '): ' . $response->body());
                 return false;
             }
 
             return true;
         } catch (\Exception $e) {
-            Log::error('Telegram notification exception: ' . $e->getMessage());
+            Log::error('Telegram notification exception: ' . $e->getMessage(), [
+                'token_length' => strlen($token),
+                'chat_id' => $chatId
+            ]);
             return false;
         }
     }
@@ -62,16 +71,22 @@ class TelegramService
             default => $report->reason
         };
 
-        $message = "🚨 <b>تبليغ جديد عن محطة</b>\n\n";
+        $message = "🚨 <b>تبليغ جديد عن مشكلة</b>\n\n";
         $message .= "📍 <b>المحطة:</b> {$report->station->name_ar}\n";
         $message .= "🚩 <b>السبب:</b> {$reason}\n";
         if ($report->comment) {
             $message .= "💬 <b>التعليق:</b> {$report->comment}\n";
         }
-        $message .= "👤 <b>بواسطة:</b> {$report->user->name} ({$report->user->phone})\n";
+        $message .= "👤 <b>بواسطة:</b> {$report->user->name}\n";
         $message .= "📅 <b>التاريخ:</b> " . now()->format('Y-m-d H:i');
 
-        $this->sendMessage($message);
+        $replyMarkup = [
+            'inline_keyboard' => [[
+                ['text' => '📍 فتح في الخرائط', 'url' => "https://www.google.com/maps/search/?api=1&query={$report->station->latitude},{$report->station->longitude}"]
+            ]]
+        ];
+
+        $this->sendMessage($message, $replyMarkup);
     }
 
     /**
@@ -84,24 +99,66 @@ class TelegramService
         }
 
         $station = $update->station;
-        $status = $update->petrol_status === 'available' ? '✅ متوفر' : '❌ غير متوفر';
-        $otherStatus = $update->other_fuel_status === 'available' ? '✅ متوفر' : '❌ غير متوفر';
+        $user = $update->user;
 
-        $congestion = match ($update->congestion_level) {
-            'empty' => '🟢 خالية',
+        // Categorize Fuels
+        $available = [];
+        $unavailable = [];
+
+        $fuels = [
+            'petrol_normal'   => 'بنزين عادي',
+            'petrol_improved' => 'بنزين محسن',
+            'petrol_super'    => 'بنزين سوبر',
+            'diesel'          => 'كاز (زيت الغاز)',
+            'kerosene'        => 'نفط أبيض',
+            'gas'             => 'غاز سائل',
+        ];
+
+        foreach ($fuels as $key => $label) {
+            if ($update->{$key} === 'available') {
+                $available[] = "✅ " . $label;
+            } elseif ($update->{$key} === 'unavailable') {
+                $unavailable[] = "❌ " . $label;
+            }
+        }
+
+        // Congestion Mapping
+        $congestion = match ($update->congestion) {
+            'low'    => '🟢 خفيفة / خالية',
             'medium' => '🟡 متوسطة',
-            'crowded' => '🔴 مزدحمة',
-            default => $update->congestion_level
+            'high'   => '🔴 مزدحمة جداً',
+            default  => '⚪ غير محدد'
         };
+
+        // User Label (Employee Check)
+        $userLabel = $user->name;
+        if ($user->role === 'employee' && (int) $user->station_id === (int) $station->id) {
+            $userLabel .= " (👷 موظف المحطة)";
+        }
 
         $message = "⛽ <b>تحديث جديد لحالة الوقود</b>\n\n";
         $message .= "📍 <b>المحطة:</b> {$station->name_ar}\n";
-        $message .= "🔹 <b>البنزين:</b> {$status}\n";
-        $message .= "🔸 <b>وقود آخر:</b> {$otherStatus}\n";
-        $message .= "🚦 <b>الازدحام:</b> {$congestion}\n";
-        $message .= "👤 <b>بواسطة:</b> {$update->user->name} ({$update->user->phone})\n";
+        $message .= "━━━━━━━━━━━━━━━\n";
+
+        if (!empty($available)) {
+            $message .= "<b>✨ المتوفر حالياً:</b>\n" . implode("\n", $available) . "\n\n";
+        }
+
+        if (!empty($unavailable)) {
+            $message .= "<b>🚫 غير متوفر:</b>\n" . implode("\n", $unavailable) . "\n\n";
+        }
+
+        $message .= "🚦 <b>حالة الازدحام:</b> {$congestion}\n";
+        $message .= "━━━━━━━━━━━━━━━\n";
+        $message .= "👤 <b>بواسطة:</b> {$userLabel}\n";
         $message .= "📅 <b>التاريخ:</b> " . now()->format('Y-m-d H:i');
 
-        $this->sendMessage($message);
+        $replyMarkup = [
+            'inline_keyboard' => [[
+                ['text' => '🗺️ الذهاب للموقع (Google Maps)', 'url' => "https://www.google.com/maps/search/?api=1&query={$station->latitude},{$station->longitude}"]
+            ]]
+        ];
+
+        $this->sendMessage($message, $replyMarkup);
     }
 }

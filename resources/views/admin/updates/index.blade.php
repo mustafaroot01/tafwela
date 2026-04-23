@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title', 'التحديثات')
 
 @section('content')
@@ -36,17 +36,83 @@
                     <td class="px-6 py-4">
                         <div class="flex flex-col">
                             <span class="text-sm font-bold text-[#2F2B3D]">{{ $update->station?->name_ar ?? '—' }}</span>
-                            <span class="text-[11px] text-secondary font-mono">{{ $update->created_at->diffForHumans() }}</span>
+                            <div class="flex flex-wrap gap-1 mt-1.5">
+                                @php
+                                    $threshold = (int) \App\Models\AppSetting::get('verification_threshold', 3);
+                                    $fuels = [
+                                        'petrol_normal' => 'عادي',
+                                        'petrol_improved' => 'محسن',
+                                        'petrol_super' => 'سوبر',
+                                        'diesel' => 'كاز',
+                                        'kerosene' => 'نفط',
+                                        'gas' => 'غاز'
+                                    ];
+                                    $totalReported = 0;
+                                    $totalVerified = 0;
+                                @endphp
+                                @foreach($fuels as $field => $label)
+                                    @if($update->{$field})
+                                        @php
+                                            $totalReported++;
+                                            // Check if this specific field has reached consensus for this station
+                                            $activeUpdates = \App\Models\StationUpdate::where('station_id', $update->station_id)->active()->get();
+                                            $votes = 0;
+                                            foreach($activeUpdates as $au) {
+                                                if($au->{$field} === $update->{$field}) {
+                                                    $votes += (1 + $au->confirmation_count);
+                                                }
+                                            }
+                                            $fieldVerified = $votes >= $threshold || $update->is_admin_update;
+                                            if($fieldVerified) $totalVerified++;
+                                            
+                                            $isAvail = $update->{$field} === 'available';
+                                            $isOut = $update->{$field} === 'unavailable';
+                                        @endphp
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold border 
+                                            {{ $isAvail ? 'bg-success/5 text-success border-success/20' : ($isOut ? 'bg-error/5 text-error border-error/20' : 'bg-warning/5 text-warning border-warning/20') }}">
+                                            @if($fieldVerified) <i class="ti ti-circle-check-filled text-[10px]"></i> @endif
+                                            {{ $label }}: {{ $update->{$field} == 'available' ? 'متوفر' : ($update->{$field} == 'limited' ? 'محدود' : 'نفذ') }}
+                                        </span>
+                                    @endif
+                                @endforeach
+                            </div>
+                            <span class="text-[10px] text-secondary font-mono mt-1 opacity-70">{{ $update->created_at->diffForHumans() }}</span>
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="text-xs text-secondary font-mono" dir="ltr">{{ $update->user?->phone ?? 'مجهول' }}</span>
+                        <div class="flex flex-col">
+                            <span class="text-xs text-[#2F2B3D] font-bold" dir="ltr">{{ $update->user?->phone ?? 'مجهول' }}</span>
+                            @if($update->user?->role === 'employee')
+                                <span class="text-[9px] text-primary font-bold">موظف محطة</span>
+                            @endif
+                        </div>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold
-                            {{ $update->is_admin_update ? 'bg-primary/10 text-primary' : ($update->is_verified ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning') }}">
-                            {{ $update->is_admin_update ? 'إداري' : ($update->is_verified ? 'موثق' : 'مراجعة') }}
-                        </span>
+                        <div class="flex flex-col items-center">
+                            @php
+                                $statusLabel = 'قيد المراجعة';
+                                $statusClass = 'bg-warning/10 text-warning';
+                                
+                                if($update->is_admin_update) {
+                                    $statusLabel = 'توثيق إداري';
+                                    $statusClass = 'bg-primary/10 text-primary';
+                                } elseif($totalVerified > 0) {
+                                    if($totalVerified >= $totalReported) {
+                                        $statusLabel = 'توثيق كلي';
+                                        $statusClass = 'bg-success/10 text-success';
+                                    } else {
+                                        $statusLabel = 'توثيق جزئي';
+                                        $statusClass = 'bg-info/10 text-info';
+                                    }
+                                }
+                            @endphp
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $statusClass }}">
+                                {{ $statusLabel }}
+                            </span>
+                            @if(!$update->is_admin_update)
+                            <span class="text-[10px] text-secondary mt-1">تأكيدات: {{ $update->confirmation_count }}</span>
+                            @endif
+                        </div>
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center justify-end gap-2">

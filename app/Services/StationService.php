@@ -76,6 +76,7 @@ class StationService
 
     public function create(array $data): Station
     {
+        $data['is_active'] = $data['is_active'] ?? true;
         $station = $this->stationRepository->create($data);
 
         StationStatus::create([
@@ -102,16 +103,28 @@ class StationService
         $this->stationRepository->delete($station);
     }
 
-    public function importAlongRoute(array $points): void
+    public function importAlongRoute(array $points): array
     {
+        $stations = [];
         foreach ($points as $point) {
             $lat = $point['lat'];
             $lng = $point['lng'];
             
-            // Fetch and save (this reuse existing logic in getNearby)
-            // Use 12km radius to ensure overlap and full path coverage if points are ~10km apart
-            $this->getNearby($lat, $lng, 12); 
+            $osmStations = $this->osmService->fetchNearbyStations($lat, $lng, 12); 
+
+            foreach ($osmStations as $osmData) {
+                $exists = Station::whereBetween('latitude', [$osmData['latitude'] - 0.0001, $osmData['latitude'] + 0.0001])
+                    ->whereBetween('longitude', [$osmData['longitude'] - 0.0001, $osmData['longitude'] + 0.0001])
+                    ->first();
+
+                if (!$exists) {
+                    $stations[] = $this->create($osmData);
+                } else {
+                    $stations[] = $exists;
+                }
+            }
         }
+        return $stations;
     }
 
     public function search(string $query)

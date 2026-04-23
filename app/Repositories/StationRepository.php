@@ -11,7 +11,7 @@ class StationRepository implements StationRepositoryInterface
 {
     public function all(array $filters = []): mixed
     {
-        $query = Station::with('status')->orderBy('name');
+        $query = Station::with(['status', 'employees'])->orderBy('name');
 
         if (!empty($filters['search'])) {
             $s = $filters['search'];
@@ -39,12 +39,12 @@ class StationRepository implements StationRepositoryInterface
 
     public function findById(int $id): ?Station
     {
-        return Station::with('status')->find($id);
+        return Station::with(['status', 'employees'])->find($id);
     }
 
     public function findNearby(float $lat, float $lng, float $radius = 10, array $filters = []): Collection
     {
-        $query = Station::with('status')
+        $query = Station::with(['status', 'employees'])
             ->active()
             ->nearby($lat, $lng, $radius);
 
@@ -89,7 +89,7 @@ class StationRepository implements StationRepositoryInterface
 
     public function search(string $query): Collection
     {
-        return Station::with('status')
+        return Station::with(['status', 'employees'])
             ->active()
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")

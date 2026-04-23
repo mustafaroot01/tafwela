@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -57,10 +57,14 @@
         .sidebar-section-title { color: #A5A3AE; font-size: 0.75rem; margin: 1.25rem 1.25rem 0.5rem 1.25rem; display: flex; align-items: center; font-weight: 600; }
         .sidebar-section-title::after { content: ""; flex: 1; height: 1px; background: #DBDADE; margin-right: 0.75rem; opacity: 0.5; }
         .materio-card { background: #FFFFFF; border-radius: 0.375rem; box-shadow: 0 0.375rem 1.125rem 0 rgba(47, 43, 61, 0.1); }
-        .btn-primary { background-color: #7367F0; color: #fff; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; }
+        .btn-primary { background-color: #7367F0; color: #fff; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: none; cursor: pointer; }
+        .btn-primary:active { transform: scale(0.95); }
         .action-form { display: inline-flex; margin: 0; padding: 0; align-items: center; vertical-align: middle; }
-        .action-btn { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .action-btn:active { transform: scale(0.85); }
         .up-progress-bar { background-color: #7367F0 !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="antialiased" 

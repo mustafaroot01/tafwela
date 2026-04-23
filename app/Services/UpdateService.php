@@ -40,19 +40,22 @@ class UpdateService
             return $this->submitEmployeeUpdateInternal($station, $user, $data);
         }
 
-        // 2. Check for recent update to THIS specific station
-        $cooldown = (int) AppSetting::get('interaction_cooldown_minutes', 60);
-        
-        $hasRecentUpdate = StationUpdate::where('station_id', $station->id)
+        // 2. Check for recent updates to THIS specific station
+        $limit = (int) AppSetting::get('user_hourly_limit', 3);
+        $recentUpdatesCount = StationUpdate::where('station_id', $station->id)
             ->where('user_id', $user->id)
-            ->where('created_at', '>=', now()->subMinutes($cooldown))
-            ->exists();
+            ->where('created_at', '>=', now()->subHour())
+            ->count();
 
-        if ($hasRecentUpdate) {
-            return ['success' => false, 'message' => __('api.recent_update_error', ['minutes' => $cooldown])];
+        if ($recentUpdatesCount >= $limit) {
+            return [
+                'success' => false, 
+                'message' => "لقد وصلت للحد الأقصى لتحديث هذه المحطة ($limit مرات في الساعة). يرجى المحاولة لاحقاً."
+            ];
         }
 
         // 2.5 Check for recent interaction (like/dislike) on THIS station
+        $cooldown = (int) AppSetting::get('interaction_cooldown_minutes', 60);
         $hasRecentInteraction = UpdateInteraction::where('user_id', $user->id)
             ->whereHas('stationUpdate', function($q) use ($station) {
                 $q->where('station_id', $station->id);
@@ -64,9 +67,36 @@ class UpdateService
             return ['success' => false, 'message' => "لقد قمت بتقييم هذه المحطة مؤخراً. الرجاء الانتظار لمدة $cooldown دقيقة قبل تحديثها."];
         }
 
-        // 3. Global anti-spam: Check for recent update to ANY station (5 mins)
-        if ($this->updateRepository->hasAnyRecentUpdateFromUser($user->id, 5)) {
-            return ['success' => false, 'message' => __('api.global_update_error')];
+        // 3. Global anti-spam: Check for recent update to ANY station
+        $globalCooldown = (int) AppSetting::get('global_update_cooldown', 5);
+        if ($this->updateRepository->hasAnyRecentUpdateFromUser($user->id, $globalCooldown)) {
+            return ['success' => false, 'message' => "يرجى الانتظار لمدة $globalCooldown دقائق بين كل تحديث وآخر."];
+        }
+
+        // 4. Check for an identical existing unverified update to confirm it instead of duplicating
+        // This makes "Multiple reports = Verification" logic work naturally
+        // We use a looser check to handle partial matches better
+        $existingUpdate = StationUpdate::where('station_id', $station->id)
+            ->where('is_verified', false)
+            ->where('is_admin_update', false)
+            ->where('petrol_normal', $data['petrol_normal'] ?? null)
+            ->where('petrol_improved', $data['petrol_improved'] ?? null)
+            ->where('petrol_super', $data['petrol_super'] ?? null)
+            ->where('diesel', $data['diesel'] ?? null)
+            ->where('kerosene', $data['kerosene'] ?? null)
+            ->where('gas', $data['gas'] ?? null)
+            ->active()
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($existingUpdate && (int) $existingUpdate->user_id !== (int) $user->id) {
+            // Check if congestion also matches (if provided)
+            if (!isset($data['congestion']) || $existingUpdate->congestion === $data['congestion']) {
+                $res = $this->interactWithUpdate($existingUpdate, $user, 'confirm');
+                if ($res['success']) {
+                    return ['success' => true, 'message' => 'تم تأكيد التحديث الحالي من قبلك أيضاً!', 'update' => $res['update']];
+                }
+            }
         }
 
         $update = $this->updateRepository->create([
@@ -103,14 +133,27 @@ class UpdateService
      * Employee update — immediate, bypasses confirmation (like admin, source='employee').
      * Employee can only update their assigned station (validated in controller).
      */
-    public function submitEmployeeUpdate(Station $station, User $employee, array $data): StationUpdate
+    public function submitEmployeeUpdate(Station $station, User $employee, array $data): array
     {
-        $result = $this->submitEmployeeUpdateInternal($station, $employee, $data);
-        return $result['update'];
+        return $this->submitEmployeeUpdateInternal($station, $employee, $data);
     }
 
     private function submitEmployeeUpdateInternal(Station $station, User $employee, array $data): array
     {
+        // Limit employees to configurable updates per hour
+        $limit = (int) AppSetting::get('employee_hourly_limit', 10);
+        $recentUpdatesCount = StationUpdate::where('station_id', $station->id)
+            ->where('user_id', $employee->id)
+            ->where('created_at', '>=', now()->subHour())
+            ->count();
+
+        if ($recentUpdatesCount >= $limit) {
+            return [
+                'success' => false, 
+                'message' => "لقد وصلت للحد الأقصى للتحديثات ($limit مرات في الساعة). يرجى المحاولة لاحقاً."
+            ];
+        }
+
         $update = $this->updateRepository->create([
             'station_id'      => $station->id,
             'user_id'         => $employee->id,
@@ -326,35 +369,87 @@ class UpdateService
         return $update;
     }
 
-    private function applyBestAvailableStatus(Station $station): void
+    public function applyBestAvailableStatus(Station $station): void
     {
+        // Get all updates that are active, ordered by newest first
         $activeUpdates = StationUpdate::where('station_id', $station->id)
             ->active()
-            ->orderByDesc('is_admin_update')
-            ->orderByDesc('is_verified')
-            ->orderByDesc('confirmation_count')
             ->orderByDesc('created_at')
             ->get();
 
         if ($activeUpdates->isEmpty()) return;
 
-        $adminUpdate = $activeUpdates->firstWhere('is_admin_update', true);
-        $best = $adminUpdate ?? $activeUpdates->first();
+        $threshold = (int) AppSetting::get('verification_threshold', 3);
+        $fields = ['petrol', 'petrol_normal', 'petrol_improved', 'petrol_super', 'diesel', 'kerosene', 'gas', 'congestion'];
+        
+        $finalStatus = [];
+        $anyVerified = false;
+        $hasAdminWin = false;
 
-        $source = $adminUpdate
-            ? 'admin'
-            : ($best->is_verified ? 'verified_users' : 'unverified_users');
+        $currentStatus = $station->status;
 
-        $this->applyStatusDirectly($station, null, [
-            'petrol'          => $best->petrol,
-            'petrol_normal'   => $best->petrol_normal,
-            'petrol_improved' => $best->petrol_improved,
-            'petrol_super'    => $best->petrol_super,
-            'diesel'          => $best->diesel,
-            'kerosene'        => $best->kerosene,
-            'gas'             => $best->gas,
-            'congestion'      => $best->congestion,
-        ], $source);
+        foreach ($fields as $field) {
+            // Group votes by value across ALL active updates
+            $votes = [];
+            foreach ($activeUpdates as $u) {
+                $val = $u->{$field};
+                if ($val === null) continue;
+
+                // Admin updates are considered "Instantly Verified" and carry high weight
+                $weight = $u->is_admin_update ? 1000 : (1 + $u->confirmation_count);
+                $votes[$val] = ($votes[$val] ?? 0) + $weight;
+            }
+
+            // Find the best value that reached the threshold
+            $bestVal = null;
+            $maxWeight = 0;
+            
+            foreach ($votes as $val => $weight) {
+                if ($weight >= $threshold && $weight > $maxWeight) {
+                    $bestVal = $val;
+                    $maxWeight = $weight;
+                }
+            }
+
+            if ($bestVal) {
+                $finalStatus[$field] = $bestVal;
+                $anyVerified = true;
+                
+                if ($maxWeight >= 1000) {
+                    $hasAdminWin = true;
+                } else if ($maxWeight >= $threshold) {
+                    // Auto-verify any report that contributed to this winning consensus
+                    foreach ($activeUpdates as $u) {
+                        if ($u->{$field} === $bestVal && !$u->is_admin_update && !$u->is_verified) {
+                            $u->update(['is_verified' => true]);
+                        }
+                    }
+                }
+            } else {
+                // If no value reached threshold, maintain the current status for this field
+                if ($currentStatus && $currentStatus->{$field} !== null) {
+                    $finalStatus[$field] = $currentStatus->{$field};
+                }
+            }
+        }
+
+        // Logic sync: If specific petrol types are updated, ensure generic 'petrol' reflects them
+        if (isset($finalStatus['petrol_normal']) || isset($finalStatus['petrol_improved']) || isset($finalStatus['petrol_super'])) {
+            $pNormal = $finalStatus['petrol_normal'] ?? 'unavailable';
+            $pImproved = $finalStatus['petrol_improved'] ?? 'unavailable';
+            $pSuper = $finalStatus['petrol_super'] ?? 'unavailable';
+            
+            if ($pNormal === 'available' || $pImproved === 'available' || $pSuper === 'available') {
+                $finalStatus['petrol'] = 'available';
+            } else {
+                $finalStatus['petrol'] = 'unavailable';
+            }
+        }
+
+        if ($anyVerified) {
+            $source = $hasAdminWin ? 'admin' : 'verified_users';
+            $this->applyStatusDirectly($station, null, $finalStatus, $source);
+        }
     }
 
     private function applyStatusDirectly(Station $station, ?User $updatedBy, array $data, string $source): void

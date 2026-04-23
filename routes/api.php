@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('v1/config', [AppConfigController::class, 'index']);
 Route::get('v1/pages',  [AppConfigController::class, 'pages']);
 
+// ── Telegram Webhook ──────────────────────────────────────────
+Route::post('telegram/webhook', [\App\Http\Controllers\API\TelegramWebhookController::class, 'handle']);
+
 // ── Public Routes ──────────────────────────────────────────────
 Route::prefix('v1')->middleware('maintenance')->group(function () {
 

@@ -70,9 +70,12 @@ class StationController extends Controller
             'points.*.lng' => ['required', 'numeric'],
         ]);
 
-        $this->stationService->importAlongRoute($request->points);
+        $stations = $this->stationService->importAlongRoute($request->points);
 
-        return response()->json(['message' => 'Route scan completed.']);
+        return response()->json([
+            'message' => 'Route scan completed.',
+            'data' => StationResource::collection($stations),
+        ]);
     }
 
     public function report(Request $request, int $stationId): JsonResponse

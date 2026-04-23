@@ -28,8 +28,11 @@ class UpdateController extends Controller
 
         // Employee assigned to this station → immediate update, bypasses confirmation
         if ($user->isEmployee() && (int) $user->station_id === (int) $stationId) {
-            $update = $this->updateService->submitEmployeeUpdate($station, $user, $data);
-            return response()->json(new UpdateResource($update), 201);
+            $result = $this->updateService->submitEmployeeUpdate($station, $user, $data);
+            if (!$result['success']) {
+                return response()->json(['message' => $result['message']], 429);
+            }
+            return response()->json(new UpdateResource($result['update']), 201);
         }
 
         $result = $this->updateService->submitUserUpdate($station, $user, $data);

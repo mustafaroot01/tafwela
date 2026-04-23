@@ -62,6 +62,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('settings',          [SettingsController::class, 'update'])->name('settings.update');
         Route::post('settings/test-otp', [SettingsController::class, 'testOtp'])->name('settings.test-otp');
         Route::post('settings/test-telegram', [SettingsController::class, 'testTelegram'])->name('settings.test-telegram');
+        Route::post('settings/set-telegram-webhook', [SettingsController::class, 'setTelegramWebhook'])->name('settings.set-telegram-webhook');
         Route::post('settings/test-fcm',      [SettingsController::class, 'testFcm'])->name('settings.test-fcm');
 
         // Reports
