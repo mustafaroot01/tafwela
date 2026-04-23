@@ -93,34 +93,27 @@ class TelegramPublicService
         }
     }
 
+    protected function getProvinces(): array
+    {
+        return [
+            'baghdad' => 'بغداد', 'basra' => 'البصرة', 'nineveh' => 'نينوى', 'erbil' => 'أربيل',
+            'najaf' => 'النجف', 'karbala' => 'كربلاء', 'sulaymaniyah' => 'السليمانية', 'kirkuk' => 'كركوك',
+            'anbar' => 'الأنبار', 'thi_qar' => 'ذي قار', 'maysan' => 'ميسان', 'qadisiyah' => 'القادسية',
+            'muthanna' => 'المثنى', 'babel' => 'بابل', 'wasit' => 'واسط', 'diyala' => 'ديالى',
+            'salah_al_din' => 'صلاح الدين', 'dohuk' => 'دهوك'
+        ];
+    }
+
     protected function showProvinces(int $chatId, ?int $messageId = null): void
     {
-        $provinces = [
-            'بغداد',
-            'البصرة',
-            'نينوى',
-            'أربيل',
-            'النجف',
-            'كربلاء',
-            'السليمانية',
-            'كركوك',
-            'الأنبار',
-            'ذي قار',
-            'ميسان',
-            'القادسية',
-            'المثنى',
-            'بابل',
-            'واسط',
-            'ديالى',
-            'صلاح الدين',
-            'دهوك'
-        ];
+        $provinces = $this->getProvinces();
 
         $buttons = [];
-        foreach (array_chunk($provinces, 2) as $chunk) {
+        $chunks = array_chunk(array_keys($provinces), 2);
+        foreach ($chunks as $chunk) {
             $row = [];
-            foreach ($chunk as $prov) {
-                $row[] = ['text' => $prov, 'callback_data' => 'prov_' . $prov];
+            foreach ($chunk as $key) {
+                $row[] = ['text' => $provinces[$key], 'callback_data' => 'prov_' . $key];
             }
             $buttons[] = $row;
         }
@@ -143,6 +136,9 @@ class TelegramPublicService
 
     protected function showFuelTypes(int $chatId, int $messageId, string $province): void
     {
+        $provincesMap = $this->getProvinces();
+        $arabicName = $provincesMap[$province] ?? $province;
+
         $fuels = [
             'petrol_normal' => '⛽ بنزين عادي',
             'petrol_improved' => '✨ بنزين محسن',
@@ -165,7 +161,7 @@ class TelegramPublicService
         $this->api('editMessageText', [
             'chat_id' => $chatId,
             'message_id' => $messageId,
-            'text' => "⛽ <b>اختر نوع الوقود المطلوب في {$province}:</b>",
+            'text' => "⛽ <b>اختر نوع الوقود المطلوب في {$arabicName}:</b>",
             'parse_mode' => 'HTML',
             'reply_markup' => ['inline_keyboard' => $buttons]
         ]);
@@ -173,13 +169,17 @@ class TelegramPublicService
 
     protected function showResults(int $chatId, int $messageId, string $province, string $fuelType): void
     {
+        $provincesMap = $this->getProvinces();
+        $arabicName = $provincesMap[$province] ?? $province;
+
         // Filter stations in province that have this fuel available and are verified
-        // "Verified" means admin source OR trusted user source
-        // Filter stations in province that have this fuel available and are verified
-        $stations = Station::where(function ($q) use ($province) {
+        $stations = Station::where(function ($q) use ($province, $arabicName) {
             $q->where('city', 'like', "%$province%")
+                ->orWhere('city', 'like', "%$arabicName%")
                 ->orWhere('district', 'like', "%$province%")
-                ->orWhere('address', 'like', "%$province%");
+                ->orWhere('district', 'like', "%$arabicName%")
+                ->orWhere('address', 'like', "%$province%")
+                ->orWhere('address', 'like', "%$arabicName%");
         })
             ->whereHas('status', function ($q) use ($fuelType) {
                 $q->where($fuelType, 'available')
@@ -194,7 +194,7 @@ class TelegramPublicService
             $this->api('editMessageText', [
                 'chat_id' => $chatId,
                 'message_id' => $messageId,
-                'text' => "😔 عذراً، لا توجد حالياً محطات <b>موثقة</b> يتوفر فيها هذا النوع من الوقود في {$province}.",
+                'text' => "😔 عذراً، لا توجد حالياً محطات <b>موثقة</b> يتوفر فيها هذا النوع من الوقود في {$arabicName}.",
                 'parse_mode' => 'HTML',
                 'reply_markup' => ['inline_keyboard' => [[['text' => '⬅️ رجوع', 'callback_data' => "prov_{$province}"]]]]
             ]);
